@@ -6,8 +6,6 @@ var fs = require('fs');
 var owner = process.argv[2];
 var repo = process.argv[3];
 
-console.log('Welcome to Github Avatar Downloader!');
-
 //Configure dotenv to access .env
 require('dotenv').config();
 var github = {
@@ -32,33 +30,44 @@ function getRepoContributors(repoOwner, repoName, cb) {
 }
 
 //Retrieve image from URL and save it to file path on disk
-function downloadImageByURL(url, filePath) {
+function downloadImageByURL(url, filePath, fileName) {
+  //If "avatars" folder does not exist, throw error
   if (!fs.existsSync(filePath)) {
-    console.log("The file avatars does not exist!");
-    throw err;
+    console.log('The file "avatars" does not exist!');
+    process.exit();
   } else {
     request.get(url)
       .on('error', function(err) {
         throw err;
       })
-      .pipe(fs.createWriteStream(filePath));
+      .pipe(fs.createWriteStream(fileName));
+  }
+}
+
+function checkInput(input) {
+  if (input.length !== 4) {
+    return false;
+  } else {
+    return true;
   }
 }
 
 //Call getRepoContributors
 getRepoContributors(owner, repo, function(err, result) {
-  //If repo owner and name are not specified, throw error
-  if (owner === undefined || repo === undefined) {
+  //Check input for owner and repo
+  if (!checkInput(process.argv)) {
     console.log("Please input repo owner and name!");
-    throw err;
+    process.exit();
   } else {
+    console.log('Welcome to Github Avatar Downloader!');
     //Iterate through repo contributors and store avatar_url
     result.forEach(function(element, index) {
       var url = element['avatar_url'];
       //Save avatars to "avatars" folder in current directory
       //Store image as "login".jpg
-      var filePath = "avatars/" + element['login'] + ".jpg";
-      downloadImageByURL(url, filePath);
+      var filePath = "avatars/"
+      var fileName = "avatars/" + element['login'] + ".jpg";
+      downloadImageByURL(url, filePath, fileName);
     });
     console.log("Errors:", err);
     console.log("Avatars downloaded!")
