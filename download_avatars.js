@@ -33,11 +33,16 @@ function getRepoContributors(repoOwner, repoName, cb) {
 
 //Retrieve image from URL and save it to file path on disk
 function downloadImageByURL(url, filePath) {
-  request.get(url)
-    .on('error', function(err) {
-      throw err;
-    })
-    .pipe(fs.createWriteStream(filePath));
+  if (!fs.existsSync(filePath)) {
+    console.log("The file avatars does not exist!");
+    throw err;
+  } else {
+    request.get(url)
+      .on('error', function(err) {
+        throw err;
+      })
+      .pipe(fs.createWriteStream(filePath));
+  }
 }
 
 //Call getRepoContributors
