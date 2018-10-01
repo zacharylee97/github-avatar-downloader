@@ -26,14 +26,13 @@ function downloadImageByURL(url, filePath) {
     .pipe(fs.createWriteStream(filePath));
 }
 
+downloadImageByURL("https://avatars2.githubusercontent.com/u/2741?v=3&s=466", "avatars/kvirani.jpg")
+
 getRepoContributors('jquery', 'jquery', function(err, result) {
-  var output = "";
   result.forEach(function(element, index) {
-    output += element['avatar_url'];
-    if (index !== result.length - 1) {
-      output += "\n";
-    }
+    var url = element['avatar_url'];
+    var filePath = "avatars/" + element['login'] + ".jpg";
+    downloadImageByURL(url, filePath);
   })
   console.log("Errors:", err);
-  console.log("Result:", output);
 });
