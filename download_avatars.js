@@ -32,10 +32,16 @@ function downloadImageByURL(url, filePath) {
 downloadImageByURL("https://avatars2.githubusercontent.com/u/2741?v=3&s=466", "avatars/kvirani.jpg")
 
 getRepoContributors(owner, repo, function(err, result) {
-  result.forEach(function(element, index) {
-    var url = element['avatar_url'];
-    var filePath = "avatars/" + element['login'] + ".jpg";
-    downloadImageByURL(url, filePath);
-  })
-  console.log("Errors:", err);
+  if (owner === undefined || repo === undefined) {
+    console.log("Please input repo owner and name!");
+    throw err;
+  } else {
+    result.forEach(function(element, index) {
+      var url = element['avatar_url'];
+      var filePath = "avatars/" + element['login'] + ".jpg";
+      downloadImageByURL(url, filePath);
+    });
+    console.log("Errors:", err);
+    console.log("Avatars downloaded!")
+  }
 });
