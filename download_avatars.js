@@ -1,7 +1,9 @@
+//Add all required modules
 var request = require('request');
 var fs = require('fs');
 var secrets = require('./secrets');
 
+//Store command line arguments
 var owner = process.argv[2];
 var repo = process.argv[3];
 
@@ -15,12 +17,16 @@ function getRepoContributors(repoOwner, repoName, cb) {
       'Authorization': secrets.GITHUB_TOKEN
     }
   };
+
   request(options, function(err, res, body) {
+    //Get repo contributors and parse JSON string to object
     var result = JSON.parse(body);
+    //Pass result into callback function
     cb(err, result);
   });
 }
 
+//Retrieve image from URL and save it to file path on disk
 function downloadImageByURL(url, filePath) {
   request.get(url)
     .on('error', function(err) {
@@ -29,15 +35,18 @@ function downloadImageByURL(url, filePath) {
     .pipe(fs.createWriteStream(filePath));
 }
 
-downloadImageByURL("https://avatars2.githubusercontent.com/u/2741?v=3&s=466", "avatars/kvirani.jpg")
-
+//Call getRepoContributors
 getRepoContributors(owner, repo, function(err, result) {
+  //If repo owner and name are not specified, throw error
   if (owner === undefined || repo === undefined) {
     console.log("Please input repo owner and name!");
     throw err;
   } else {
+    //Iterate through repo contributors and store avatar_url
     result.forEach(function(element, index) {
       var url = element['avatar_url'];
+      //Save avatars to "avatars" folder in current directory
+      //Store image as "login".jpg
       var filePath = "avatars/" + element['login'] + ".jpg";
       downloadImageByURL(url, filePath);
     });
