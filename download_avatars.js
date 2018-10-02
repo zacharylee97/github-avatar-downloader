@@ -8,17 +8,24 @@ var repo = process.argv[3];
 
 //Configure dotenv to access .env
 const result = require('dotenv').config();
-//if .env does not exist, throw error
-if (result.error) {
-  throw result.error;
+if (result.error) {                                 //if .env does not exist, throw error
+  console.log(result.error);
+  process.exit();
+} else if (process.env.GH_TOKEN === undefined) {    //if GH_TOKEN does not exist in .env, throw error
+  console.log("Please provide token!");
+  process.exit();
+} else {
+  var github = {
+    password: process.env.GH_TOKEN
+  }
 }
 
 function getRepoContributors(repoOwner, repoName, cb) {
   var options = {
-    url: "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/contributors",
+    url: 'https://api.github.com/repos/' + repoOwner + '/' + repoName + '/contributors',
     headers: {
       'User-Agent': 'request',
-      'Authorization': "token" + github.password
+      'Authorization': 'token' + github.password
     }
   };
 
@@ -31,23 +38,32 @@ function getRepoContributors(repoOwner, repoName, cb) {
 }
 
 //Retrieve image from URL and save it to file path on disk
-function downloadImageByURL(url, filePath) {
+function downloadImageByURL(url, filePath, fileName) {
+  //If "avatars" folder does not exist, throw error
   if (!fs.existsSync(filePath)) {
-    console.log('The file "avatars" does not exist!');
+    console.log('Please create file called "avatars"!');
     process.exit();
   } else {
     request.get(url)
       .on('error', function(err) {
         throw err;
       })
-      .pipe(fs.createWriteStream(filePath));
+      .pipe(fs.createWriteStream(fileName));
+  }
+}
+
+function checkInput(input) {
+  if (input.length !== 4) {
+    return false;
+  } else {
+    return true;
   }
 }
 
 //Call getRepoContributors
 getRepoContributors(owner, repo, function(err, result) {
-  //If repo owner and name are not specified, throw error
-  if (owner === undefined || repo === undefined) {
+  //Check input for owner and repo
+  if (!checkInput(process.argv)) {
     console.log("Please input repo owner and name!");
     process.exit();
   } else {
@@ -57,8 +73,9 @@ getRepoContributors(owner, repo, function(err, result) {
       var url = element['avatar_url'];
       //Save avatars to "avatars" folder in current directory
       //Store image as "login".jpg
-      var filePath = "avatars/" + element['login'] + ".jpg";
-      downloadImageByURL(url, filePath);
+      var filePath = "avatars/"
+      var fileName = "avatars/" + element['login'] + ".jpg";
+      downloadImageByURL(url, filePath, fileName);
     });
     console.log("Errors:", err);
     console.log("Avatars downloaded!")
