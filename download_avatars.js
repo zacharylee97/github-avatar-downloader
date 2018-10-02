@@ -7,9 +7,10 @@ var owner = process.argv[2];
 var repo = process.argv[3];
 
 //Configure dotenv to access .env
-require('dotenv').config();
-var github = {
-  password: process.env.GH_TOKEN
+const result = require('dotenv').config();
+//if .env does not exist, throw error
+if (result.error) {
+  throw result.error;
 }
 
 function getRepoContributors(repoOwner, repoName, cb) {
@@ -30,8 +31,7 @@ function getRepoContributors(repoOwner, repoName, cb) {
 }
 
 //Retrieve image from URL and save it to file path on disk
-function downloadImageByURL(url, filePath, fileName) {
-  //If "avatars" folder does not exist, throw error
+function downloadImageByURL(url, filePath) {
   if (!fs.existsSync(filePath)) {
     console.log('The file "avatars" does not exist!');
     process.exit();
@@ -40,22 +40,14 @@ function downloadImageByURL(url, filePath, fileName) {
       .on('error', function(err) {
         throw err;
       })
-      .pipe(fs.createWriteStream(fileName));
-  }
-}
-
-function checkInput(input) {
-  if (input.length !== 4) {
-    return false;
-  } else {
-    return true;
+      .pipe(fs.createWriteStream(filePath));
   }
 }
 
 //Call getRepoContributors
 getRepoContributors(owner, repo, function(err, result) {
-  //Check input for owner and repo
-  if (!checkInput(process.argv)) {
+  //If repo owner and name are not specified, throw error
+  if (owner === undefined || repo === undefined) {
     console.log("Please input repo owner and name!");
     process.exit();
   } else {
@@ -65,9 +57,8 @@ getRepoContributors(owner, repo, function(err, result) {
       var url = element['avatar_url'];
       //Save avatars to "avatars" folder in current directory
       //Store image as "login".jpg
-      var filePath = "avatars/"
-      var fileName = "avatars/" + element['login'] + ".jpg";
-      downloadImageByURL(url, filePath, fileName);
+      var filePath = "avatars/" + element['login'] + ".jpg";
+      downloadImageByURL(url, filePath);
     });
     console.log("Errors:", err);
     console.log("Avatars downloaded!")
